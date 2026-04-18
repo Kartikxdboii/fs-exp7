@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exp 7 - Spring Security JWT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .response {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .response.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .response.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .token-display {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            word-break: break-all;
+            font-size: 12px;
+        }
+
+        .credentials {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .credentials h3 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .credentials p {
+            color: #856404;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .endpoint-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .endpoint-btn {
+            padding: 15px;
+            background: #f8f9fa;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .endpoint-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .endpoint-btn h4 {
+            margin-bottom: 5px;
+        }
+
+        .endpoint-btn p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .endpoint-btn:hover p {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Experiment 7</h1>
+            <p>Spring Security with JWT Authentication</p>
+        </div>
+
+        <!-- Part A: Login -->
+        <div class="card">
+            <h2>Part (a) - Login & Get JWT Token</h2>
+            
+            <div class="credentials">
+                <h3>Test Credentials:</h3>
+                <p><strong>Admin:</strong> admin / admin123</p>
+                <p><strong>User:</strong> user / user123</p>
+            </div>
+
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Enter username">
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter password">
+            </div>
+
+            <button class="btn" onclick="login()">Login</button>
+
+            <div id="loginResponse"></div>
+        </div>
+
+        <!-- Part B & C: Protected Endpoints -->
+        <div class="card">
+            <h2>Part (b) & (c) - Test Protected Endpoints</h2>
+            
+            <div class="endpoint-grid">
+                <div class="endpoint-btn" onclick="testEndpoint('/dashboard')">
+                    <h4>📊 Dashboard</h4>
+                    <p>Any authenticated user</p>
+                </div>
+
+                <div class="endpoint-btn" onclick="testEndpoint('/admin/data')">
+                    <h4>👑 Admin Data</h4>
+                    <p>ADMIN role only</p>
+                </div>
+
+                <div class="endpoint-btn" onclick="testEndpoint('/user/profile')">
+                    <h4>👤 User Profile</h4>
+                    <p>USER role only</p>
+                </div>
+            </div>
+
+            <div id="endpointResponse"></div>
+        </div>
+    </div>
+
+    <script>
+        let jwtToken = null;
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                showResponse('loginResponse', 'Please enter username and password', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.token) {
+                    jwtToken = data.token;
+                    showResponse('loginResponse', 
+                        `✅ ${data.message}\n\nJWT Token:\n${jwtToken}`, 
+                        'success');
+                } else {
+                    showResponse('loginResponse', `❌ ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showResponse('loginResponse', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testEndpoint(endpoint) {
+            if (!jwtToken) {
+                showResponse('endpointResponse', '❌ Please login first to get a JWT token!', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${jwtToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showResponse('endpointResponse', 
+                        `✅ Success (${response.status})\n\n${JSON.stringify(data, null, 2)}`, 
+                        'success');
+                } else if (response.status === 403) {
+                    showResponse('endpointResponse', 
+                        `🚫 Access Denied (403 Forbidden)\n\nYou don't have permission to access this endpoint.\nThis demonstrates Role-Based Access Control (RBAC).`, 
+                        'error');
+                } else {
+                    showResponse('endpointResponse', 
+                        `❌ Error ${response.status}: ${response.statusText}`, 
+                        'error');
+                }
+            } catch (error) {
+                showResponse('endpointResponse', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function showResponse(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="response ${type}">${message}</div>`;
+        }
+    </script>
+</body>
+</html>

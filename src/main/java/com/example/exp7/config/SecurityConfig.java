@@ -39,7 +39,7 @@ public class SecurityConfig {
 
             // 2. Define which URLs are public vs protected
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/register").permitAll()  // public routes
+                .requestMatchers("/", "/login", "/register", "/index.html").permitAll()  // public routes
                 .anyRequest().authenticated()                        // everything else needs JWT
             )
 
